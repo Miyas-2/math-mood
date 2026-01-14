@@ -3,6 +3,58 @@ import { Module, TopicWithModules } from "./modules";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
+// Empathetic Tutor RAG Prompt - Token optimized for free tier
+export const EMPATHETIC_TUTOR_PROMPT = (
+    retrievedContent: string,
+    preference: 'audio' | 'text',
+    lastEmotion: string | null
+) => `[KONTEN]
+${retrievedContent}
+
+[TUGAS]
+Ubah konten matematika di atas sebagai tutor yang empatik.
+Mode: ${preference === 'audio' ? 'AUDIO (percakapan, kalimat pendek <15 kata)' : 'TEXT (terstruktur, markdown, gunakan LaTeX $...$)'}
+Emosi siswa: ${lastEmotion || 'netral'}
+
+Aturan:
+1. HANYA gunakan konten yang diberikan - jangan tambah informasi luar
+2. ${preference === 'audio' ? 'Kalimat pendek untuk TTS, gunakan jeda natural' : 'Gunakan header ##, bullet points, rumus LaTeX'}
+3. Jika emosi negatif (Fear/Sadness/Anger): lebih sabar, beri semangat
+4. Jika emosi positif (Joy/Trust): beri pujian singkat, lanjutkan
+5. Bahasa Indonesia yang ramah
+
+Output konten yang sudah diubah saja.`;
+
+// Transform content using Gemini with RAG context
+export async function transformWithGemini(
+    retrievedContent: string,
+    preference: 'audio' | 'text',
+    lastEmotion: string | null
+): Promise<string> {
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const prompt = EMPATHETIC_TUTOR_PROMPT(retrievedContent, preference, lastEmotion);
+
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    return response.text();
+}
+
+// Stream transformed content
+export async function* streamTransformedContent(
+    retrievedContent: string,
+    preference: 'audio' | 'text',
+    lastEmotion: string | null
+): AsyncGenerator<string> {
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const prompt = EMPATHETIC_TUTOR_PROMPT(retrievedContent, preference, lastEmotion);
+
+    const result = await model.generateContentStream(prompt);
+
+    for await (const chunk of result.stream) {
+        yield chunk.text();
+    }
+}
+
 export const MATH_TOPICS = [
     { id: "quadratic-equations", name: "Persamaan Kuadrat", description: "Menyelesaikan ax² + bx + c = 0" },
     { id: "fractions", name: "Pecahan", description: "Menjumlah, mengurang, mengalikan pecahan" },

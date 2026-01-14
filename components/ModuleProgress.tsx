@@ -1,14 +1,21 @@
 "use client";
 
-import { Module, ModuleStatus } from "@/lib/modules";
 import { cn } from "@/lib/utils";
 import { Check, Lock, Play, ChevronRight } from "lucide-react";
 
+type ModuleStatus = "completed" | "current" | "locked";
+
+interface SimpleModule {
+    id: string;
+    name: string;
+    description?: string;
+}
+
 interface ModuleProgressProps {
-    modules: Module[];
+    modules: SimpleModule[];
     currentModuleIndex: number;
     completedModules: Set<string>;
-    onModuleClick?: (module: Module, index: number) => void;
+    onModuleClick?: (module: SimpleModule, index: number) => void;
 }
 
 export function ModuleProgress({
@@ -99,7 +106,7 @@ export function ModuleProgress({
                                         status === "completed" && "bg-emerald-500/20 text-emerald-500",
                                         status === "locked" && "bg-muted text-muted-foreground"
                                     )}>
-                                        Modul {module.order}
+                                        {index + 1}
                                     </span>
                                     {status === "current" && (
                                         <span className="text-xs text-primary font-medium">Sedang dipelajari</span>
@@ -111,6 +118,9 @@ export function ModuleProgress({
                                 )}>
                                     {module.name}
                                 </h4>
+                                {module.description && (
+                                    <p className="text-xs text-muted-foreground">{module.description}</p>
+                                )}
                             </div>
 
                             {/* Arrow for current/completed */}

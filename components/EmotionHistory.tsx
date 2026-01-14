@@ -25,8 +25,8 @@ const emotionToValue: Record<PlutchikEmotion, number> = {
     Fear: 1,
 };
 
-const valueToEmotion = Object.entries(emotionToValue).reduce(
-    (acc, [emotion, value]) => ({ ...acc, [value]: emotion }),
+const valueToEmotion: Record<number, PlutchikEmotion> = Object.entries(emotionToValue).reduce(
+    (acc, [emotion, value]) => ({ ...acc, [value]: emotion as PlutchikEmotion }),
     {} as Record<number, PlutchikEmotion>
 );
 
@@ -96,7 +96,7 @@ export function EmotionHistory({ history }: EmotionHistoryProps) {
                     <YAxis
                         domain={[0, 9]}
                         ticks={[1, 2, 3, 4, 5, 6, 7, 8]}
-                        tickFormatter={(value) => valueToEmotion[value]?.[0] || ""}
+                        tickFormatter={(value: number) => valueToEmotion[value]?.charAt(0) || ""}
                         stroke="hsl(var(--muted-foreground))"
                         fontSize={10}
                         tickLine={false}
